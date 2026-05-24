@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title> 📖 키워드 대화 위젯 생성기</title>
+<title>🗝️ 키워드 대화 위젯 생성기 (fallback 대사 기능)</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -179,7 +179,7 @@
 <div class="container">
   <!-- 좌측 폼 -->
   <div class="form-panel">
-    <h2>📖 키워드 대화 위젯 생성기 </h2>
+    <h2>🗝️ 키워드 대화 위젯 생성기 (fallback 대사)</h2>
     <p style="margin-bottom:1rem; font-size:0.8rem;">값 입력 → 오른쪽 미리보기 + 코드 생성</p>
 
     <!-- 캐릭터 정보 섹션 -->
@@ -228,6 +228,21 @@
       </div>
     </div>
 
+    <!-- 기본 응답 설정 섹션 (추가) -->
+    <div class="collapsible-section">
+      <div class="section-header" data-target="fallback-settings">
+        <span>💬 기본 응답 (대사 없을 때)</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content" id="fallback-settings">
+        <div class="form-group">
+          <label>기본 응답 문구 (JSON 배열)</label>
+          <textarea id="fallbackMessages" rows="3" style="font-family:monospace;">["다른 이야기를 하자.", "그건 잘 모르겠어.", "음... 그건 좀...", "패스.", "다음 주제로."]</textarea>
+          <small>※ 키워드에 대사가 없을 때 여기서 랜덤으로 하나 선택됩니다.</small>
+        </div>
+      </div>
+    </div>
+
     <!-- 분류 목록 섹션 -->
     <div class="collapsible-section">
       <div class="section-header" data-target="categories-list">
@@ -259,7 +274,8 @@
       </div>
     </div>
     <hr>
-    <small>※ JSON 대사 배열: `["대사1","대사2"]` / 표정 배열: `["기본","웃음"]`</small>
+    <small>※ JSON 대사 배열: `["대사1","대사2"]` / 표정 배열: `["기본","웃음"]`<br>
+    대사 배열이 비어있거나 유효하지 않으면 기본 응답 문구가 사용됩니다.</small>
   </div>
 
   <!-- 우측 패널 -->
@@ -287,11 +303,11 @@
   let categories = [
     { name: "기초 회화", keywords: [
         { kw: "개인적인 이야기", desc: "약간은 사적인 내용을 주제로 이야기를 나눠 보자.", lines: '["내 이야기가 궁금하다고? 어쩔까...", "안 알려줄래."]', faces: '["곤란", "웃음"]' },
-        { kw: "스킬에 대하여", desc: "스킬을 중심으로 대화한다. 스킬의 입수방법이나 수련방법에 대해 알 수 있다.", lines: '["많은 사람들에게 말을 걸어 봐. 새로운 스킬을 배울 수 있을 거야."]', faces: '["기본"]' }
+        { kw: "스킬에 대하여", desc: "스킬을 중심으로 대화한다.", lines: '', faces: '["기본"]' }
       ] },
     { name: "중급 회화", keywords: [{ kw: "예시 키워드", desc: "이 키워드에 대한 설명", lines: '["중급 회화 키워드 대화 내용입니다."]', faces: '["기본"]' }] },
     { name: "고급 회화", keywords: [{ kw: "예시 키워드", desc: "키워드 설명", lines: '["고급 회화 키워드 대화 내용입니다."]', faces: '["기본"]' }] },
-    { name: "정보 메모", keywords: [{ kw: "예시 키워드", desc: "키워드 설명", lines: '["고급 회화 키워드 대화 내용입니다."]', faces: '["기본"]' }] }, { name: "지인 소개", keywords: [{ kw: "예시 키워드", desc: "키워드 설명", lines: '["고급 회화 키워드 대화 내용입니다."]', faces: '["기본"]' }] }, { name: "특별 대화", keywords: [{ kw: "예시 키워드", desc: "키워드 설명", lines: '["고급 회화 키워드 대화 내용입니다."]', faces: '["기본"]' }] }
+    { name: "정보 메모", keywords: [] }, { name: "지인 소개", keywords: [] }, { name: "특별 대화", keywords: [] }
   ];
 
   // DOM 요소
@@ -309,6 +325,7 @@
   const hidePortraitCheckbox = document.getElementById('hidePortrait');
   const collapseAllBtn = document.getElementById('collapseAllBtn');
   const expandAllBtn = document.getElementById('expandAllBtn');
+  const fallbackMessagesTextarea = document.getElementById('fallbackMessages');
   const themeColors = {
     themeBg: document.getElementById('themeBg'), speechBg: document.getElementById('speechBg'),
     speechBgGrad: document.getElementById('speechBgGrad'), nameColor: document.getElementById('nameColor'),
@@ -418,7 +435,7 @@
       inp.addEventListener('input', (e) => { const idx = parseInt(inp.dataset.idx); categories[idx].name = inp.value; updateAll(); });
     });
     document.querySelectorAll('.addKeywordBtn').forEach(btn => {
-      btn.addEventListener('click', () => { const catIdx = parseInt(btn.dataset.catidx); categories[catIdx].keywords.push({ kw:"새 키워드", desc:"새 설명", lines:'["예시 대사입니다."]', faces:'["기본"]' }); renderCategoriesForm(); updateAll(); });
+      btn.addEventListener('click', () => { const catIdx = parseInt(btn.dataset.catidx); categories[catIdx].keywords.push({ kw:"새 키워드", desc:"새 설명", lines:'[]', faces:'[]' }); renderCategoriesForm(); updateAll(); });
     });
     document.querySelectorAll('.deleteKwBtn').forEach(btn => {
       btn.addEventListener('click', () => { const catIdx = parseInt(btn.dataset.catidx); const kwIdx = parseInt(btn.dataset.kwidx); categories[catIdx].keywords.splice(kwIdx,1); renderCategoriesForm(); updateAll(); });
@@ -441,7 +458,7 @@
   collapseAllBtn.addEventListener('click', collapseAll);
   expandAllBtn.addEventListener('click', expandAll);
 
-  // ---------- 위젯 HTML 생성 (초상화 크기 120x120) ----------
+  // ---------- 위젯 HTML 생성 (fallback 대사 지원, 초상화 120x120) ----------
   function generateWidgetHTML() {
     const charName = charNameInput.value;
     const portraitDefault = portraitDefaultInput.value;
@@ -453,6 +470,12 @@
     const defaultText = defaultTextInput.value;
     const perPage = parseInt(perPageInput.value) || 6;
     const hidePortrait = hidePortraitCheckbox.checked;
+    let fallbackMessages = [];
+    try {
+      fallbackMessages = JSON.parse(fallbackMessagesTextarea.value);
+      if (!Array.isArray(fallbackMessages)) fallbackMessages = ["다른 이야기를 하자.", "그건 잘 모르겠어."];
+    } catch(e) { fallbackMessages = ["다른 이야기를 하자.", "그건 잘 모르겠어."]; }
+    const fallbackMessagesJson = JSON.stringify(fallbackMessages);
     const colors = {};
     for (let key in themeColors) colors[key] = themeColors[key].value;
 
@@ -482,7 +505,6 @@
       `;
     });
 
-    // 초상화 영역 HTML (숨김 옵션에 따라) - 크기 120x120
     const portraitHtml = hidePortrait ? '' : `
       <div id="wk-kd-portrait-wrap" class="wk-kd-portrait"><div class="wk-kd-portrait-ph">초상화<br>영역</div></div>
     `;
@@ -608,7 +630,7 @@
 </style>
 </head>
 <body>
-<div class="wk-kd" id="wk-kd-widget" data-portraits='${escapeHtml(portraitMapJson)}' data-name="${escapeHtml(charName)}" data-default="${escapeHtml(defaultText)}">
+<div class="wk-kd" id="wk-kd-widget" data-portraits='${escapeHtml(portraitMapJson)}' data-name="${escapeHtml(charName)}" data-default="${escapeHtml(defaultText)}" data-fallback='${escapeHtml(fallbackMessagesJson)}'>
   <div class="wk-kd-speech">
     ${portraitHtml}
     <div class="wk-kd-bubble"><div id="wk-kd-name" class="wk-kd-name">${escapeHtml(charName)}</div><div id="wk-kd-text" class="wk-kd-text">${escapeHtml(defaultText)}</div></div>
@@ -633,6 +655,8 @@
     if(textEl) textEl.textContent = defaultTxt;
     var portraitMap = {};
     try { portraitMap = JSON.parse(widget.getAttribute('data-portraits') || '{}'); } catch(e) {}
+    var fallbackMessages = [];
+    try { fallbackMessages = JSON.parse(widget.getAttribute('data-fallback') || '["다른 이야기를 하자.","그건 잘 모르겠어."]'); } catch(e) { fallbackMessages = ["다른 이야기를 하자.","그건 잘 모르겠어."]; }
     var portraitImg = null;
     function setPortrait(key){
       if(!portWrap) return;
@@ -649,29 +673,55 @@
     }
     setPortrait('기본');
     var lines = [], faces = [], lineIdx = 0;
-    function resolveLines(raw){ try{ var p=JSON.parse(raw); if(!Array.isArray(p)) return [String(p)]; return p.map(function(item){ if(Array.isArray(item)) return item[Math.floor(Math.random() * item.length)]; return String(item); }); }catch(e){ return [String(raw)]; } }
-    function resolveFaces(raw,len){ try{ var p=JSON.parse(raw); if(!Array.isArray(p)) p=[]; while(p.length<len) p.push(''); return p; }catch(e){ return new Array(len).fill(''); } }
-    function updateEndBtn(){ if(endBtn) endBtn.textContent = (lines.length>0 && lineIdx<lines.length-1) ? '다음' : '대화 끝내기'; }
-    function showLine(idx){ if(textEl) textEl.textContent = lines[idx]; var faceKey = faces[idx]; if(faceKey!=='') setPortrait(faceKey); }
+    function resolveLines(raw){
+      try{ var p=JSON.parse(raw); if(!Array.isArray(p)) return [String(p)]; return p; } catch(e){ return [String(raw)]; }
+    }
+    function resolveFaces(raw, len){
+      try{ var p=JSON.parse(raw); if(!Array.isArray(p)) p=[]; while(p.length<len) p.push(''); return p; } catch(e){ return new Array(len).fill(''); }
+    }
+    function updateEndBtn(){ if(endBtn) endBtn.textContent = (lines.length > 0) ? '대화 끝내기' : '대화 끝내기'; } // 더 이상 다음 없음
+    function showRandomLine(){
+      if(!lines.length || lines.length === 0 || (lines.length === 1 && lines[0] === "")){
+        // 대사 없음 → fallback
+        if(fallbackMessages.length > 0){
+          var randomIndex = Math.floor(Math.random() * fallbackMessages.length);
+          if(textEl) textEl.textContent = fallbackMessages[randomIndex];
+        } else {
+          if(textEl) textEl.textContent = "...";
+        }
+        setPortrait('기본');
+        return;
+      }
+      var idx = Math.floor(Math.random() * lines.length);
+      if(textEl) textEl.textContent = lines[idx];
+      var faceKey = faces[idx];
+      if(faceKey && faceKey !== '') setPortrait(faceKey);
+      else setPortrait('기본');
+    }
     function startDialog(item){
-      var rawLines = item.getAttribute('data-lines') || '["..."]';
+      var rawLines = item.getAttribute('data-lines') || '[]';
       var rawFaces = item.getAttribute('data-faces') || '[]';
       lines = resolveLines(rawLines);
+      lines = lines.filter(function(line) { return line && line.trim() !== ""; });
       faces = resolveFaces(rawFaces, lines.length);
-      lineIdx = 0;
-      showLine(0);
+      showRandomLine();
       updateEndBtn();
     }
     widget.addEventListener('click', function(e){ var item = e.target.closest ? e.target.closest('.wk-kd-item') : null; if(item) startDialog(item); });
     if(endBtn){
       endBtn.addEventListener('click', function(){
-        if(lines.length>0 && lineIdx<lines.length-1){ lineIdx++; showLine(lineIdx); updateEndBtn(); }
-        else{ lines=[]; faces=[]; lineIdx=0; if(textEl) textEl.textContent='대화를 끝냈습니다.'; setPortrait('기본'); updateEndBtn(); }
+        lines = []; faces = [];
+        if(textEl) textEl.textContent = '대화를 끝냈습니다.';
+        setPortrait('기본');
+        updateEndBtn();
       });
     }
     if(resetBtn){
       resetBtn.addEventListener('click', function(){
-        lines=[]; faces=[]; lineIdx=0; if(textEl) textEl.textContent=defaultTxt; setPortrait('기본'); updateEndBtn();
+        lines = []; faces = [];
+        if(textEl) textEl.textContent = defaultTxt;
+        setPortrait('기본');
+        updateEndBtn();
         var activeTab = document.querySelector('.wk-kd-tab.active');
         if(activeTab) switchTab(activeTab.getAttribute('data-cat'));
       });
@@ -733,7 +783,7 @@
     URL.revokeObjectURL(a.href);
   });
 
-  const allInputs = [charNameInput, portraitDefaultInput, portraitMapTextarea, defaultTextInput, perPageInput, hidePortraitCheckbox];
+  const allInputs = [charNameInput, portraitDefaultInput, portraitMapTextarea, defaultTextInput, perPageInput, hidePortraitCheckbox, fallbackMessagesTextarea];
   for (let inp of allInputs) inp.addEventListener('input', updateAll);
   for (let key in themeColors) themeColors[key].addEventListener('input', updateAll);
 
