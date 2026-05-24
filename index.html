@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>📜 키워드 대화 위젯 생성기</title>
+<title>🗝️ 키워드 대화 위젯 생성기 (폰트 위젯 내부에만 적용)</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -192,7 +192,7 @@
 <div class="container">
   <!-- 좌측 패널 -->
   <div class="form-panel">
-    <h2>📜 키워드 대화 위젯 생성기</h2>
+    <h2>🗝️ 키워드 대화 위젯 생성기 (폰트 위젯 내부 적용)</h2>
     <p style="margin-bottom:1rem; font-size:0.8rem;">JSON 파일 불러오기 → 편집 → HTML 코드 생성</p>
 
     <div class="file-upload-area">
@@ -243,7 +243,7 @@
     <!-- 웹폰트 설정 -->
     <div class="collapsible-section">
       <div class="section-header" data-target="font-settings">
-        <span>🔤 웹폰트 (직접 @font-face 코드)</span>
+        <span>🔤 웹폰트 (위젯 내부에만 적용)</span>
         <span class="toggle-icon">▼</span>
       </div>
       <div class="section-content" id="font-settings">
@@ -255,10 +255,12 @@
     font-weight: normal;
     font-display: swap;
 }" style="font-family: monospace;"></textarea>
+          <small>※ @font-face는 전역이지만, 폰트 적용은 위젯 영역 내부로 제한됩니다.</small>
         </div>
         <div class="form-group">
           <label>적용할 font-family 이름 (선택)</label>
           <input type="text" id="fontFamilyName" placeholder="Mabiyet, 'Noto Sans KR', sans-serif">
+          <small>※ 입력한 font-family가 위젯 내부 전체에 적용됩니다 (외부 영향 없음).</small>
         </div>
       </div>
     </div>
@@ -335,7 +337,7 @@
       </div>
     </div>
     <hr>
-    <small>※ 대화 종료/미선택 메시지를 자유롭게 변경 가능. 시퀀스 대사 지원.</small>
+    <small>※ 폰트는 위젯 내부에만 적용되며, 외부 페이지에는 영향 없습니다.</small>
   </div>
 
   <!-- 우측 패널 -->
@@ -396,7 +398,7 @@
     btnEndBg: document.getElementById('btnEndBg'), borderColor: document.getElementById('borderColor')
   };
 
-  // 접기/펴기 함수
+  // 접기/펴기 함수 (이전과 동일)
   function toggleCategoryContent(catDiv, idx) {
     const content = catDiv.querySelector('.cat-content');
     const icon = catDiv.querySelector('.toggle-icon');
@@ -443,7 +445,7 @@
     });
   }
 
-  // 카테고리 편집기 렌더링
+  // 카테고리 편집기 렌더링 (이전과 동일, 길이 생략)
   function renderCategoriesForm() {
     categoriesContainer.innerHTML = '';
     categories.forEach((cat, idx) => {
@@ -486,91 +488,30 @@
   }
 
   function attachCategoryEvents() {
-    // 삭제 분류
+    // 모든 이벤트 핸들러 (기존과 동일 - 생략, 필요시 전체 코드 참조)
     document.querySelectorAll('.deleteCatBtn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const idx = parseInt(btn.dataset.idx);
-        categories.splice(idx, 1);
-        const newCollapsed = {};
-        for (let i = 0; i < categories.length; i++) {
-          if (i < idx) newCollapsed[i] = categoryCollapsed[i];
-          else newCollapsed[i] = categoryCollapsed[i+1];
-        }
-        categoryCollapsed = newCollapsed;
-        renderCategoriesForm();
-        updateAll();
-      });
+      btn.addEventListener('click', (e) => { e.stopPropagation(); const idx = parseInt(btn.dataset.idx); categories.splice(idx, 1); const newCollapsed = {}; for (let i = 0; i < categories.length; i++) { if (i < idx) newCollapsed[i] = categoryCollapsed[i]; else newCollapsed[i] = categoryCollapsed[i+1]; } categoryCollapsed = newCollapsed; renderCategoriesForm(); updateAll(); });
     });
-    // 분류 이름 수정
     document.querySelectorAll('.cat-name').forEach(inp => {
-      inp.addEventListener('input', (e) => {
-        const idx = parseInt(inp.dataset.idx);
-        categories[idx].name = inp.value;
-        updateAll();
-      });
+      inp.addEventListener('input', (e) => { const idx = parseInt(inp.dataset.idx); categories[idx].name = inp.value; updateAll(); });
     });
-    // 키워드 추가
     document.querySelectorAll('.addKeywordBtn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const catIdx = parseInt(btn.dataset.catidx);
-        categories[catIdx].keywords.push({
-          kw: "새 키워드",
-          desc: "새 설명",
-          lines: '[["예시 대사1","예시 대사2"]]',
-          faces: '[["기본","기본"]]'
-        });
-        renderCategoriesForm();
-        updateAll();
-      });
+      btn.addEventListener('click', (e) => { e.stopPropagation(); const catIdx = parseInt(btn.dataset.catidx); categories[catIdx].keywords.push({ kw:"새 키워드", desc:"새 설명", lines:'[["예시 대사1","예시 대사2"]]', faces:'[["기본","기본"]]' }); renderCategoriesForm(); updateAll(); });
     });
-    // 키워드 삭제
     document.querySelectorAll('.deleteKwBtn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const catIdx = parseInt(btn.dataset.catidx);
-        const kwIdx = parseInt(btn.dataset.kwidx);
-        categories[catIdx].keywords.splice(kwIdx, 1);
-        renderCategoriesForm();
-        updateAll();
-      });
+      btn.addEventListener('click', (e) => { e.stopPropagation(); const catIdx = parseInt(btn.dataset.catidx); const kwIdx = parseInt(btn.dataset.kwidx); categories[catIdx].keywords.splice(kwIdx, 1); renderCategoriesForm(); updateAll(); });
     });
-    // 키워드 이름 수정
     document.querySelectorAll('.kw-name').forEach(inp => {
-      inp.addEventListener('input', (e) => {
-        const catIdx = parseInt(inp.dataset.catidx);
-        const kwIdx = parseInt(inp.dataset.kwidx);
-        categories[catIdx].keywords[kwIdx].kw = inp.value;
-        updateAll();
-      });
+      inp.addEventListener('input', (e) => { const catIdx = parseInt(inp.dataset.catidx); const kwIdx = parseInt(inp.dataset.kwidx); categories[catIdx].keywords[kwIdx].kw = inp.value; updateAll(); });
     });
-    // 키워드 설명 수정
     document.querySelectorAll('.kw-desc').forEach(inp => {
-      inp.addEventListener('input', (e) => {
-        const catIdx = parseInt(inp.dataset.catidx);
-        const kwIdx = parseInt(inp.dataset.kwidx);
-        categories[catIdx].keywords[kwIdx].desc = inp.value;
-        updateAll();
-      });
+      inp.addEventListener('input', (e) => { const catIdx = parseInt(inp.dataset.catidx); const kwIdx = parseInt(inp.dataset.kwidx); categories[catIdx].keywords[kwIdx].desc = inp.value; updateAll(); });
     });
-    // 대사 배열 수정
     document.querySelectorAll('.kw-lines').forEach(ta => {
-      ta.addEventListener('input', (e) => {
-        const catIdx = parseInt(ta.dataset.catidx);
-        const kwIdx = parseInt(ta.dataset.kwidx);
-        categories[catIdx].keywords[kwIdx].lines = ta.value;
-        updateAll();
-      });
+      ta.addEventListener('input', (e) => { const catIdx = parseInt(ta.dataset.catidx); const kwIdx = parseInt(ta.dataset.kwidx); categories[catIdx].keywords[kwIdx].lines = ta.value; updateAll(); });
     });
-    // 표정 배열 수정
     document.querySelectorAll('.kw-faces').forEach(ta => {
-      ta.addEventListener('input', (e) => {
-        const catIdx = parseInt(ta.dataset.catidx);
-        const kwIdx = parseInt(ta.dataset.kwidx);
-        categories[catIdx].keywords[kwIdx].faces = ta.value;
-        updateAll();
-      });
+      ta.addEventListener('input', (e) => { const catIdx = parseInt(ta.dataset.catidx); const kwIdx = parseInt(ta.dataset.kwidx); categories[catIdx].keywords[kwIdx].faces = ta.value; updateAll(); });
     });
   }
 
@@ -620,7 +561,7 @@
     loadCategoriesFromJSON(JSON.stringify(sample));
   });
 
-  // 위젯 HTML 생성 함수 (시퀀스 대화, 종료 메시지 커스텀)
+  // 위젯 HTML 생성 (폰트 적용 범위 수정)
   function generateWidgetHTML() {
     const charName = charNameInput.value;
     const portraitDefault = portraitDefaultInput.value;
@@ -669,7 +610,7 @@
     const portraitHtml = hidePortrait ? '' : `<div id="wk-kd-portrait-wrap" class="wk-kd-portrait"><div class="wk-kd-portrait-ph">초상화<br>영역</div></div>`;
     let fontCSS = '';
     if (fontFaceCode) {
-      fontCSS = `<style>${fontFaceCode}\n${fontFamilyValue ? `body, .wk-kd, .wk-kd * { font-family: ${fontFamilyValue}, 'Noto Sans KR', sans-serif !important; }` : ''}</style>`;
+      fontCSS = `<style>${fontFaceCode}\n${fontFamilyValue ? `.wk-kd, .wk-kd * { font-family: ${fontFamilyValue}, 'Noto Sans KR', sans-serif !important; }` : ''}</style>`;
     }
 
     return `<!DOCTYPE html>
@@ -990,7 +931,6 @@ ${fontCSS}
   collapseAllBtn.addEventListener('click', (e) => { e.stopPropagation(); collapseAll(); });
   expandAllBtn.addEventListener('click', (e) => { e.stopPropagation(); expandAll(); });
 
-  // 초기 데이터
   (function init() {
     const defaultCat = [
       { name: "기초회화", keywords: [
