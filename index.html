@@ -196,7 +196,6 @@
     <h2>📜 키워드 대화 위젯 생성기</h2>
     <p style="margin-bottom:1rem; font-size:0.8rem;">HTML/JSON/코드 붙여넣기로 불러오기 → 편집 → 새 HTML 생성</p>
 
-    <!-- 불러오기 영역 -->
     <div class="paste-area">
       <label>📋 HTML 코드 붙여넣기</label>
       <textarea id="pasteHtmlCode" rows="4" placeholder="<!DOCTYPE html> ... 위젯 HTML 코드를 여기에 붙여넣으세요."></textarea>
@@ -455,7 +454,6 @@
   }
 
   function attachCategoryEvents() {
-    // 삭제 분류
     document.querySelectorAll('.deleteCatBtn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -471,7 +469,6 @@
         updateAll();
       });
     });
-    // 분류 이름 수정
     document.querySelectorAll('.cat-name').forEach(inp => {
       inp.addEventListener('input', (e) => {
         const idx = parseInt(inp.dataset.idx);
@@ -479,7 +476,6 @@
         updateAll();
       });
     });
-    // 키워드 추가
     document.querySelectorAll('.addKeywordBtn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -494,7 +490,6 @@
         updateAll();
       });
     });
-    // 키워드 삭제
     document.querySelectorAll('.deleteKwBtn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -505,7 +500,6 @@
         updateAll();
       });
     });
-    // 키워드 이름 수정
     document.querySelectorAll('.kw-name').forEach(inp => {
       inp.addEventListener('input', (e) => {
         const catIdx = parseInt(inp.dataset.catidx);
@@ -514,7 +508,6 @@
         updateAll();
       });
     });
-    // 설명 수정
     document.querySelectorAll('.kw-desc').forEach(inp => {
       inp.addEventListener('input', (e) => {
         const catIdx = parseInt(inp.dataset.catidx);
@@ -523,7 +516,6 @@
         updateAll();
       });
     });
-    // 대사 배열 수정
     document.querySelectorAll('.kw-lines').forEach(ta => {
       ta.addEventListener('input', (e) => {
         const catIdx = parseInt(ta.dataset.catidx);
@@ -532,7 +524,6 @@
         updateAll();
       });
     });
-    // 표정 배열 수정
     document.querySelectorAll('.kw-faces').forEach(ta => {
       ta.addEventListener('input', (e) => {
         const catIdx = parseInt(ta.dataset.catidx);
@@ -558,14 +549,12 @@
   function extractCategoriesFromHTML(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    // 1. 우선 kw-categories-data 태그 확인
     let scriptElem = doc.getElementById('kw-categories-data');
     if (scriptElem && scriptElem.textContent) {
       try {
         return JSON.parse(scriptElem.textContent);
-      } catch(e) { /* 다음 방법으로 */ }
+      } catch(e) {}
     }
-    // 2. <script> 내에서 const stories = [...] 패턴 찾기
     const scripts = doc.querySelectorAll('script:not([src])');
     for (let script of scripts) {
       const text = script.textContent;
@@ -574,7 +563,6 @@
         try {
           const possibleData = eval('(' + match[1] + ')');
           if (Array.isArray(possibleData) && possibleData.length > 0 && possibleData[0].hasOwnProperty('title') && possibleData[0].hasOwnProperty('lines')) {
-            // 이전 위젯의 stories 배열을 categories 형식으로 변환
             const converted = possibleData.map(story => ({
               name: story.title,
               keywords: story.lines.map(line => ({
@@ -593,7 +581,6 @@
     return null;
   }
 
-  // 파일 업로드 처리
   function loadFromHTMLFile(file) {
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -607,14 +594,13 @@
           updateAll();
           alert(`✅ HTML 파일에서 ${categories.length}개의 분류를 불러왔습니다.`);
         } else {
-          alert('이 HTML 파일에서 카테고리 데이터를 찾을 수 없습니다.\n(이 생성기로 만든 최신 위젯이 아니거나, stories 변수 추출에 실패했습니다.)');
+          alert('이 HTML 파일에서 카테고리 데이터를 찾을 수 없습니다.');
         }
       } catch(e) { alert('파싱 오류: ' + e.message); }
     };
     reader.readAsText(file);
   }
 
-  // 붙여넣기 처리
   async function loadFromPasteText() {
     const html = pasteHtmlCode.value;
     if (!html.trim()) { alert('코드를 붙여넣어주세요.'); return; }
@@ -630,7 +616,7 @@
         alert(`✅ 붙여넣은 코드에서 ${categories.length}개의 분류를 불러왔습니다.`);
       } else {
         pasteLoadStatus.innerText = '❌ 데이터를 찾을 수 없음';
-        alert('붙여넣은 코드에서 카테고리 데이터를 추출할 수 없습니다.\n이 생성기로 만든 최신 위젯 또는 일반 stories 배열이 포함된 위젯이어야 합니다.');
+        alert('붙여넣은 코드에서 카테고리 데이터를 추출할 수 없습니다.');
       }
     } catch(e) {
       pasteLoadStatus.innerText = '❌ 오류: ' + e.message;
@@ -642,7 +628,6 @@
   loadHtmlBtn.addEventListener('click', () => { if (htmlFileInput.files[0]) loadFromHTMLFile(htmlFileInput.files[0]); else alert('파일을 선택하세요.'); });
   loadFromPasteBtn.addEventListener('click', loadFromPasteText);
 
-  // JSON 파일 로드
   function loadCategoriesFromJSON(data) {
     try {
       let loaded = data;
@@ -676,7 +661,7 @@
     updateAll();
   });
 
-  // ----------------------------- 위젯 HTML 생성 (최종) -----------------------------
+  // ----------------------------- 위젯 HTML 생성 (fallback 적용 수정) -----------------------------
   function generateWidgetHTML() {
     const charName = charNameInput.value;
     const portraitDefault = portraitDefaultInput.value;
@@ -869,7 +854,7 @@ ${categoriesJson}
           seqs.push({ lines: seqLines, faces: seqFaces });
         }
       } catch(e) {
-        seqs = [{ lines: ["대사 오류"], faces: ["기본"] }];
+        // 파싱 실패 시 빈 배열
       }
       return seqs;
     }
@@ -918,10 +903,19 @@ ${categoriesJson}
     }
     
     function startDialog(item) {
-      var rawLines = item.getAttribute('data-lines') || '[["..."]]';
-      var rawFaces = item.getAttribute('data-faces') || '[["기본"]]';
+      var rawLines = item.getAttribute('data-lines') || '[]';
+      var rawFaces = item.getAttribute('data-faces') || '[]';
       var parsedSeqs = parseSequences(rawLines, rawFaces);
-      if (parsedSeqs.length === 0) return;
+      // 대사가 없는 경우 fallback 사용
+      if (parsedSeqs.length === 0 || (parsedSeqs.length === 1 && parsedSeqs[0].lines.length === 0)) {
+        if (fallbackMessages.length > 0) {
+          var randomIndex = Math.floor(Math.random() * fallbackMessages.length);
+          var fallbackText = fallbackMessages[randomIndex];
+          parsedSeqs = [{ lines: [fallbackText], faces: ['기본'] }];
+        } else {
+          parsedSeqs = [{ lines: ["..."], faces: ["기본"] }];
+        }
+      }
       sequences = parsedSeqs;
       activeSeqIdx = Math.floor(Math.random() * sequences.length);
       currentLineIdx = 0;
