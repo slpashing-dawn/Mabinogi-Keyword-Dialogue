@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📦 마비노기 키워드 → JSON 변환기 (대사/표정 포함)</title>
+<title>📦 키워드 → JSON 변환기</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -126,12 +126,19 @@
     margin-right: 1rem;
     font-weight: normal;
   }
+  .inline-code {
+    background: #e2e8f0;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.3rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
 </style>
 </head>
 <body>
 <div class="container">
-  <h2>📦 마비노기 키워드 → JSON 변환기</h2>
-  <p style="margin-bottom:1rem;">키워드 데이터를 입력하면 <strong>키워드 대화 위젯 생성기용 JSON</strong>으로 변환합니다.</p>
+  <h2>📦 키워드 → JSON 변환기</h2>
+  <p style="margin-bottom:1rem;">키워드 데이터를 입력하면 <strong>키워드 대화 위젯 생성기용 JSON</strong>으로 변환합니다 (시퀀스 대사 지원).</p>
 
   <!-- 입력 방식 탭 -->
   <div class="mode-tabs">
@@ -139,7 +146,7 @@
     <div class="mode-tab" data-mode="list">📊 표 형식 (| 구분)</div>
   </div>
 
-  <!-- 텍스트 형식 패널 (키워드만 가능) -->
+  <!-- 텍스트 형식 패널 (키워드+설명만) -->
   <div id="textPanel" class="input-panel active">
     <div class="flex-between">
       <label>✏️ 분류별 키워드 입력 (키워드+설명만)</label>
@@ -148,39 +155,28 @@
     <textarea id="textInput" rows="12" placeholder="[기초회화]
 개인적인 이야기: 약간은 사적인 내용을 주제로 이야기를 나누어 보자.
 근처의 소문: 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자.
-스킬에 대하여: 스킬을 중심으로 대화한다. 스킬의 입수방법이나 수련방법에 대해 알 수 있다.
-아르바이트에 대하여: 돈이나 음식을 얻을 많은 일거리에 대해서 대화한다. 운이 좋다면 일감을 받을 수도 있다.
-수업과 수련에 대하여: 학교의 선생과 대화해보자. 학교에서 공부를 할 때 사용한다.
-
-[중급회화]
-여행 이야기: 여행 경험을 공유합니다.
-취미 생활: 평소에 즐기는 취미에 대해 이야기합니다."></textarea>
-    <div class="help">※ `[분류명]` 줄로 시작, `키워드: 설명` 형식. 대사/표정은 기본값으로 생성됩니다.</div>
+스킬에 대하여: 스킬을 중심으로 대화한다. 스킬의 입수방법이나 수련방법에 대해 알 수 있다."></textarea>
+    <div class="help">※ `[분류명]` 줄로 시작, `키워드: 설명` 형식. 대사/표정은 기본 시퀀스(한 줄)로 생성됩니다.</div>
   </div>
 
   <!-- 표 형식 패널 -->
   <div id="listPanel" class="input-panel">
     <div class="detail-select">
-      <span style="font-weight:600;">📌 포함할 정보:</span>
-      <label><input type="radio" name="listDetail" value="keyword" checked> 🔑 키워드+설명만</label>
-      <label><input type="radio" name="listDetail" value="lines"> 💬 + 대사 포함</label>
-      <label><input type="radio" name="listDetail" value="faces"> 🎭 + 대사+표정 포함</label>
+      <span style="font-weight:600;">📌 대사 형식:</span>
+      <label><input type="radio" name="listDetail" value="simple" checked> 🔹 단순 키워드</label>
+      <label><input type="radio" name="listDetail" value="sequence"> 🔸 대사, 표정 포함 (중첩 배열)</label>
     </div>
     <div class="flex-between">
       <label>✏️ 표 형식 입력 (구분자: `|`)</label>
       <button id="exampleListBtn" class="example-btn">📋 예시 채우기</button>
     </div>
-    <textarea id="listInput" rows="12" placeholder="기초회화 | 개인적인 이야기 | 약간은 사적인 내용을 주제로 이야기를 나누어 보자.
-기초회화 | 근처의 소문 | 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자.
-기초회화 | 스킬에 대하여 | 스킬을 중심으로 대화한다. 스킬의 입수방법이나 수련방법에 대해 알 수 있다.
-기초회화 | 아르바이트에 대하여 | 돈이나 음식을 얻을 많은 일거리에 대해서 대화한다. 운이 좋다면 일감을 받을 수도 있다.
-기초회화 | 수업과 수련에 대하여 | 학교의 선생과 대화해보자. 학교에서 공부를 할 때 사용한다."></textarea>
+    <textarea id="listInput" rows="12" placeholder="기초회화 | 개인적인 이야기 | 약간은 사적인 내용을 주제로 이야기를 나누어 보자."></textarea>
     <div class="help">
-      💡 <strong>표 형식 규칙</strong><br>
-      - 구분자는 `|` (파이프)입니다.<br>
-      - 열 순서: <code>분류 | 키워드 | 설명 [ | 대사(JSON) [ | 표정(JSON) ] ]</code><br>
-      - 대사/표정은 반드시 유효한 JSON 배열 형식이어야 합니다.<br>
-      - 대사 없이 표정만은 불가능합니다 (대사 포함 시 표정 선택 가능).
+      💡 <strong>표 형식 규칙 (열 수에 따라 다름)</strong><br>
+      - <strong>단순 대사 모드</strong>: 3열(기본) / 4열(대사 JSON) / 5열(대사+표정)<br>
+      - <strong>시퀀스 대사 모드</strong>: 3열(기본: `[["예시 대사"]]`) / 4열(시퀀스 대사 JSON) / 5열(시퀀스 대사+표정 JSON)<br>
+      - JSON은 반드시 유효한 중첩 배열 형식이어야 합니다: <code>[["첫째","둘째"], ["셋째"]]</code><br>
+      - 표정도 동일한 중첩 구조: <code>[["기본","웃음"], ["정색"]]</code>
     </div>
   </div>
 
@@ -196,11 +192,9 @@
   <pre id="outputCode">// 결과가 여기에 표시됩니다</pre>
   <hr>
   <div class="help">
-    💡 <strong>사용 방법 요약</strong><br>
-    - <strong>텍스트 형식</strong>: 빠른 키워드+설명 입력 (대사/표정 기본값)<br>
-    - <strong>표 형식</strong>: 열 개수에 따라 자동 감지 (3열: 기본, 4열: 대사 포함, 5열: 대사+표정)<br>
-    - 대사/표정은 반드시 JSON 배열 예: <code>["첫 대사","둘째 대사"]</code><br>
-    - 생성된 JSON은 키워드 대화 위젯 생성기의 <code>categories</code> 배열에 그대로 사용 가능합니다.
+    💡 <strong>시퀀스 대사란?</strong> 키워드 하나가 여러 개의 독립적인 대화 흐름(시퀀스)을 가지며, 클릭 시 무작위로 선택됩니다.<br>
+    선택된 시퀀스 내에서는 대사가 순서대로 출력되고, "다음" 버튼으로 넘어갑니다.<br>
+    예: <code>[["대사1-1","대사1-2"], ["대사2"]]</code> → 50% 확률로 2줄 대화, 50% 확률로 1줄 대화.
   </div>
 </div>
 
@@ -225,7 +219,7 @@
     });
   });
 
-  // --------------------- 텍스트 모드 파싱 (키워드+설명만) ---------------------
+  // --------------------- 텍스트 모드 파싱 (키워드+설명만 -> 단순 대사 기본값) ---------------------
   function parseTextMode(text) {
     const lines = text.split(/\r?\n/);
     const categories = [];
@@ -252,8 +246,8 @@
             currentKeywords.push({
               kw: kw,
               desc: desc,
-              lines: '["예시 대사를 입력하세요."]',
-              faces: '["기본"]'
+              lines: '[["예시 대사를 입력하세요."]]',  // 기본 시퀀스 형태 (중첩 배열)
+              faces: '[["기본"]]'
             });
           }
         }
@@ -265,8 +259,8 @@
     return categories;
   }
 
-  // --------------------- 표 모드 파싱 (열 개수 자동 감지) ---------------------
-  function parseListMode(text) {
+  // --------------------- 표 모드 파싱 (단순/시퀀스) ---------------------
+  function parseListMode(text, isSequence) {
     const lines = text.split(/\r?\n/);
     const catMap = new Map();
 
@@ -274,39 +268,89 @@
       let line = raw.trim();
       if (line === "") continue;
       let parts = line.split('|').map(s => s.trim());
-      if (parts.length < 3) continue; // 최소 3열 필요
+      if (parts.length < 3) continue;
       let catName = parts[0];
       let kw = parts[1];
       let desc = parts[2];
-      let linesJson = '["예시 대사를 입력하세요."]';
-      let facesJson = '["기본"]';
+      let linesJson, facesJson;
 
-      if (parts.length >= 4 && parts[3] !== "") {
-        // 대사 제공됨
-        linesJson = parts[3];
+      if (isSequence) {
+        // 시퀀스 모드: 기본값은 [["..."]] 형태
+        if (parts.length >= 4 && parts[3] !== "") {
+          linesJson = parts[3];
+        } else {
+          linesJson = '[["예시 대사를 입력하세요."]]';
+        }
         if (parts.length >= 5 && parts[4] !== "") {
           facesJson = parts[4];
         } else {
-          // 대사만 있고 표정 없으면 기본 표정 (길이 맞춰서)
+          // 표정이 없으면 기본 표정 (시퀀스 길이에 맞춰서 생성)
           try {
             const linesArr = JSON.parse(linesJson);
             if (Array.isArray(linesArr)) {
-              facesJson = JSON.stringify(new Array(linesArr.length).fill("기본"));
+              const facesArr = linesArr.map(seq => seq.map(() => "기본"));
+              facesJson = JSON.stringify(facesArr);
+            } else {
+              facesJson = '[[기본]]';
             }
-          } catch(e) {}
+          } catch(e) {
+            facesJson = '[["기본"]]';
+          }
+        }
+      } else {
+        // 단순 모드 (기존): 3열: 기본, 4열: 단순 배열, 5열: 단순 배열+표정
+        if (parts.length >= 4 && parts[3] !== "") {
+          linesJson = parts[3];
+          // 단순 배열을 시퀀스 배열로 변환 (단일 시퀀스로 감싸기)
+          try {
+            let arr = JSON.parse(linesJson);
+            if (Array.isArray(arr) && !Array.isArray(arr[0])) {
+              linesJson = JSON.stringify([arr]);
+            } else if (!Array.isArray(arr)) {
+              linesJson = '[[예시 대사]]';
+            }
+          } catch(e) {
+            linesJson = '[["예시 대사"]]';
+          }
+        } else {
+          linesJson = '[["예시 대사를 입력하세요."]]';
+        }
+        if (parts.length >= 5 && parts[4] !== "") {
+          facesJson = parts[4];
+          try {
+            let fArr = JSON.parse(facesJson);
+            if (Array.isArray(fArr) && !Array.isArray(fArr[0])) {
+              facesJson = JSON.stringify([fArr]);
+            }
+          } catch(e) {
+            facesJson = '[["기본"]]';
+          }
+        } else {
+          // 표정 없으면 기본
+          try {
+            const linesArr = JSON.parse(linesJson);
+            if (Array.isArray(linesArr)) {
+              const facesArr = linesArr.map(seq => seq.map(() => "기본"));
+              facesJson = JSON.stringify(facesArr);
+            } else {
+              facesJson = '[["기본"]]';
+            }
+          } catch(e) {
+            facesJson = '[["기본"]]';
+          }
         }
       }
 
-      // JSON 유효성 검사 (간단히)
+      // JSON 유효성 검사 및 기본값
       try {
         JSON.parse(linesJson);
       } catch(e) {
-        linesJson = '["잘못된 대사 형식입니다."]';
+        linesJson = '[["잘못된 대사 형식"]]';
       }
       try {
         JSON.parse(facesJson);
       } catch(e) {
-        facesJson = '["기본"]';
+        facesJson = '[["기본"]]';
       }
 
       if (!catMap.has(catName)) {
@@ -335,7 +379,8 @@
       categories = parseTextMode(rawText);
     } else {
       const rawText = document.getElementById('listInput').value;
-      categories = parseListMode(rawText);
+      const isSequence = document.querySelector('input[name="listDetail"]:checked').value === 'sequence';
+      categories = parseListMode(rawText, isSequence);
     }
     if (categories.length === 0) {
       alert('유효한 키워드 데이터를 찾을 수 없습니다.');
@@ -352,32 +397,24 @@
 개인적인 이야기: 약간은 사적인 내용을 주제로 이야기를 나누어 보자.
 근처의 소문: 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자.
 스킬에 대하여: 스킬을 중심으로 대화한다. 스킬의 입수방법이나 수련방법에 대해 알 수 있다.
-아르바이트에 대하여: 돈이나 음식을 얻을 많은 일거리에 대해서 대화한다. 운이 좋다면 일감을 받을 수도 있다.
-수업과 수련에 대하여: 학교의 선생과 대화해보자. 학교에서 공부를 할 때 사용한다.
 
 [중급회화]
-여행 이야기: 여행 경험을 공유합니다.
-취미 생활: 평소에 즐기는 취미에 대해 이야기합니다.`;
+잡화점: 일상생활에서 필요한 다양한 물건을 파는 장소. 잡화점의 위치에 대해서 물어본다.
+식료품점: 이 마을의 식료품점에 대해 대화한다. 장소나 정보를 얻을 수 있다.`;
     convert();
   }
 
   function fillListExample() {
     const detail = document.querySelector('input[name="listDetail"]:checked').value;
     let example = "";
-    if (detail === 'keyword') {
-      example = `기초회화 | 개인적인 이야기 | 약간은 사적인 내용을 주제로 이야기를 나누어 보자.
-기초회화 | 근처의 소문 | 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자.
-기초회화 | 스킬에 대하여 | 스킬을 중심으로 대화한다. 스킬의 입수방법이나 수련방법에 대해 알 수 있다.
-기초회화 | 아르바이트에 대하여 | 돈이나 음식을 얻을 많은 일거리에 대해서 대화한다. 운이 좋다면 일감을 받을 수도 있다.
-기초회화 | 수업과 수련에 대하여 | 학교의 선생과 대화해보자. 학교에서 공부를 할 때 사용한다.`;
-    } else if (detail === 'lines') {
-      example = `기초회화 | 개인적인 이야기 | 약간은 사적인 내용을 주제로 이야기를 나누어 보자. | ["솔직히 말하자면...", "비밀이지만...", "사실은 말이지..."]
-기초회화 | 근처의 소문 | 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자. | ["들리는 말인데...", "여기저기서 그런 소문이 있더라.", "정말인지는 모르겠지만."]
-기초회화 | 스킬에 대하여 | 스킬을 중심으로 대화한다. | ["이 스킬은 훈련이 필요해.", "실전에서 빛을 발하지.", "나도 배우는 중이야."]`;
-    } else {
+    if (detail === 'simple') {
       example = `기초회화 | 개인적인 이야기 | 약간은 사적인 내용을 주제로 이야기를 나누어 보자. | ["솔직히 말하자면...", "비밀이지만...", "사실은 말이지..."] | ["곤란","웃음","기본"]
 기초회화 | 근처의 소문 | 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자. | ["들리는 말인데...", "여기저기서 그런 소문이 있더라.", "정말인지는 모르겠지만."] | ["기본","웃음","정색"]
-기초회화 | 스킬에 대하여 | 스킬을 중심으로 대화한다. | ["이 스킬은 훈련이 필요해.", "실전에서 빛을 발하지.", "나도 배우는 중이야."] | ["기본","기본","기본"]`;
+중급회화 | 잡화점 | 일상생활에서 필요한 다양한 물건을 파는 장소. 잡화점의 위치에 대해서 물어본다. | ["발터 씨랑 아이라 씨가 가족이라니.", "처음엔 정말 놀랐어."] | ["웃음","웃음"]`;
+    } else {
+      example = `기초회화 | 개인적인 이야기 | 약간은 사적인 내용을 주제로 이야기를 나누어 보자. | [["솔직히 말하자면...", "별로 말하고 싶지 않아."], ["비밀이야."]] | [["기본","웃음"], ["기본"]]
+기초회화 | 근처의 소문 | 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자. | [["들리는 말인데...", "여기저기서 그런 소문이 있더라."], ["정말인지는 모르겠지만."]] | [["기본","웃음"], ["정색"]]
+중급회화 | 잡화점 | 일상생활에서 필요한 다양한 물건을 파는 장소. 잡화점의 위치에 대해서 물어본다. | [["발터 씨랑 아이라 씨가 가족이라니.", "처음엔 정말 놀랐어."], ["발터 씨는 모자를 안 쓰실까?", "바로 옆에 시몬 씨도 있는데."], ["가끔 의자를 가져다 드리고 싶어."]] | [["웃음","웃음"], ["기본","웃음"], ["웃음"]]`;
     }
     document.getElementById('listInput').value = example;
     convert();
@@ -414,8 +451,8 @@
   });
   document.getElementById('exampleTextBtn').addEventListener('click', fillTextExample);
   document.getElementById('exampleListBtn').addEventListener('click', fillListExample);
-  
-  // 표 형식 상세 옵션 변경 시 예시 새로고침 (선택사항)
+
+  // 표 형식 상세 옵션 변경 시 예시 새로고침
   const radios = document.querySelectorAll('input[name="listDetail"]');
   radios.forEach(radio => {
     radio.addEventListener('change', () => {
