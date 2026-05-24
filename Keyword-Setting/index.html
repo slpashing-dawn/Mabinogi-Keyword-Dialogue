@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📦 마비노기 키워드 → JSON 변환기 (대사/표정 포함)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #f1f5f9;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    padding: 2rem 1rem;
+    color: #0f172a;
+  }
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 2rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    padding: 1.5rem;
+  }
+  textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background: #fefcf5;
+    resize: vertical;
+  }
+  label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+  button {
+    background: #0f172a;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-right: 0.8rem;
+    margin-top: 0.5rem;
+  }
+  button:hover { opacity: 0.85; transform: scale(0.97); }
+  pre {
+    background: #1e293b;
+    padding: 1rem;
+    border-radius: 1rem;
+    overflow-x: auto;
+    font-size: 0.75rem;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: #e2e8f0;
+    margin-top: 1rem;
+    max-height: 400px;
+  }
+  .copy-btn, .download-btn {
+    background: #3b82f6;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+  }
+  .example-btn {
+    background: #4b5563;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    margin-top: 0;
+  }
+  .flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  hr { margin: 1rem 0; }
+  .help {
+    font-size: 0.75rem;
+    color: #5b6e8c;
+    margin-top: 0.5rem;
+  }
+  .mode-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+  }
+  .mode-tab {
+    background: #f1f5f9;
+    padding: 0.4rem 1rem;
+    border-radius: 2rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+  }
+  .mode-tab.active {
+    background: #0f172a;
+    color: white;
+  }
+  .input-panel {
+    display: none;
+  }
+  .input-panel.active {
+    display: block;
+  }
+  .detail-select {
+    display: flex;
+    gap: 1rem;
+    margin: 0.5rem 0 1rem;
+    background: #f8fafc;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    flex-wrap: wrap;
+  }
+  .detail-select label {
+    display: inline-block;
+    margin-right: 1rem;
+    font-weight: normal;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>📦 마비노기 키워드 → JSON 변환기</h2>
+  <p style="margin-bottom:1rem;">키워드 데이터를 입력하면 <strong>키워드 대화 위젯 생성기용 JSON</strong>으로 변환합니다.</p>
+
+  <!-- 입력 방식 탭 -->
+  <div class="mode-tabs">
+    <div class="mode-tab active" data-mode="text">📝 텍스트 형식 (분류별)</div>
+    <div class="mode-tab" data-mode="list">📊 표 형식 (| 구분)</div>
+  </div>
+
+  <!-- 텍스트 형식 패널 (키워드만 가능) -->
+  <div id="textPanel" class="input-panel active">
+    <div class="flex-between">
+      <label>✏️ 분류별 키워드 입력 (키워드+설명만)</label>
+      <button id="exampleTextBtn" class="example-btn">📋 예시 채우기</button>
+    </div>
+    <textarea id="textInput" rows="12" placeholder="[기초회화]
+개인적인 이야기: 약간은 사적인 내용을 주제로 이야기를 나누어 보자.
+근처의 소문: 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자.
+스킬에 대하여: 스킬을 중심으로 대화한다. 스킬의 입수방법이나 수련방법에 대해 알 수 있다.
+아르바이트에 대하여: 돈이나 음식을 얻을 많은 일거리에 대해서 대화한다. 운이 좋다면 일감을 받을 수도 있다.
+수업과 수련에 대하여: 학교의 선생과 대화해보자. 학교에서 공부를 할 때 사용한다.
+
+[중급회화]
+여행 이야기: 여행 경험을 공유합니다.
+취미 생활: 평소에 즐기는 취미에 대해 이야기합니다."></textarea>
+    <div class="help">※ `[분류명]` 줄로 시작, `키워드: 설명` 형식. 대사/표정은 기본값으로 생성됩니다.</div>
+  </div>
+
+  <!-- 표 형식 패널 -->
+  <div id="listPanel" class="input-panel">
+    <div class="detail-select">
+      <span style="font-weight:600;">📌 포함할 정보:</span>
+      <label><input type="radio" name="listDetail" value="keyword" checked> 🔑 키워드+설명만</label>
+      <label><input type="radio" name="listDetail" value="lines"> 💬 + 대사 포함</label>
+      <label><input type="radio" name="listDetail" value="faces"> 🎭 + 대사+표정 포함</label>
+    </div>
+    <div class="flex-between">
+      <label>✏️ 표 형식 입력 (구분자: `|`)</label>
+      <button id="exampleListBtn" class="example-btn">📋 예시 채우기</button>
+    </div>
+    <textarea id="listInput" rows="12" placeholder="기초회화 | 개인적인 이야기 | 약간은 사적인 내용을 주제로 이야기를 나누어 보자.
+기초회화 | 근처의 소문 | 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자.
+기초회화 | 스킬에 대하여 | 스킬을 중심으로 대화한다. 스킬의 입수방법이나 수련방법에 대해 알 수 있다.
+기초회화 | 아르바이트에 대하여 | 돈이나 음식을 얻을 많은 일거리에 대해서 대화한다. 운이 좋다면 일감을 받을 수도 있다.
+기초회화 | 수업과 수련에 대하여 | 학교의 선생과 대화해보자. 학교에서 공부를 할 때 사용한다."></textarea>
+    <div class="help">
+      💡 <strong>표 형식 규칙</strong><br>
+      - 구분자는 `|` (파이프)입니다.<br>
+      - 열 순서: <code>분류 | 키워드 | 설명 [ | 대사(JSON) [ | 표정(JSON) ] ]</code><br>
+      - 대사/표정은 반드시 유효한 JSON 배열 형식이어야 합니다.<br>
+      - 대사 없이 표정만은 불가능합니다 (대사 포함 시 표정 선택 가능).
+    </div>
+  </div>
+
+  <div style="margin-top: 0.5rem;">
+    <button id="convertBtn">🔄 JSON 생성</button>
+    <button id="downloadBtn">⬇️ JSON 파일로 저장</button>
+  </div>
+
+  <div class="flex-between" style="margin-top: 1rem;">
+    <label>📋 생성된 JSON (키워드 위젯 생성기용)</label>
+    <div><button id="copyBtn" class="copy-btn">📋 복사</button></div>
+  </div>
+  <pre id="outputCode">// 결과가 여기에 표시됩니다</pre>
+  <hr>
+  <div class="help">
+    💡 <strong>사용 방법 요약</strong><br>
+    - <strong>텍스트 형식</strong>: 빠른 키워드+설명 입력 (대사/표정 기본값)<br>
+    - <strong>표 형식</strong>: 열 개수에 따라 자동 감지 (3열: 기본, 4열: 대사 포함, 5열: 대사+표정)<br>
+    - 대사/표정은 반드시 JSON 배열 예: <code>["첫 대사","둘째 대사"]</code><br>
+    - 생성된 JSON은 키워드 대화 위젯 생성기의 <code>categories</code> 배열에 그대로 사용 가능합니다.
+  </div>
+</div>
+
+<script>
+  // --------------------- 탭 전환 ---------------------
+  const textPanel = document.getElementById('textPanel');
+  const listPanel = document.getElementById('listPanel');
+  const modeTabs = document.querySelectorAll('.mode-tab');
+
+  modeTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      modeTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const mode = tab.getAttribute('data-mode');
+      if (mode === 'text') {
+        textPanel.classList.add('active');
+        listPanel.classList.remove('active');
+      } else {
+        textPanel.classList.remove('active');
+        listPanel.classList.add('active');
+      }
+    });
+  });
+
+  // --------------------- 텍스트 모드 파싱 (키워드+설명만) ---------------------
+  function parseTextMode(text) {
+    const lines = text.split(/\r?\n/);
+    const categories = [];
+    let currentCat = null;
+    let currentKeywords = [];
+
+    for (let raw of lines) {
+      let line = raw.trim();
+      if (line === "") continue;
+      if (line.startsWith('[') && line.endsWith(']')) {
+        if (currentCat && currentKeywords.length > 0) {
+          categories.push({ name: currentCat, keywords: currentKeywords });
+        }
+        currentCat = line.slice(1, -1);
+        currentKeywords = [];
+        continue;
+      }
+      if (currentCat) {
+        let colonIndex = line.indexOf(':');
+        if (colonIndex !== -1) {
+          let kw = line.substring(0, colonIndex).trim();
+          let desc = line.substring(colonIndex + 1).trim();
+          if (kw && desc) {
+            currentKeywords.push({
+              kw: kw,
+              desc: desc,
+              lines: '["예시 대사를 입력하세요."]',
+              faces: '["기본"]'
+            });
+          }
+        }
+      }
+    }
+    if (currentCat && currentKeywords.length > 0) {
+      categories.push({ name: currentCat, keywords: currentKeywords });
+    }
+    return categories;
+  }
+
+  // --------------------- 표 모드 파싱 (열 개수 자동 감지) ---------------------
+  function parseListMode(text) {
+    const lines = text.split(/\r?\n/);
+    const catMap = new Map();
+
+    for (let raw of lines) {
+      let line = raw.trim();
+      if (line === "") continue;
+      let parts = line.split('|').map(s => s.trim());
+      if (parts.length < 3) continue; // 최소 3열 필요
+      let catName = parts[0];
+      let kw = parts[1];
+      let desc = parts[2];
+      let linesJson = '["예시 대사를 입력하세요."]';
+      let facesJson = '["기본"]';
+
+      if (parts.length >= 4 && parts[3] !== "") {
+        // 대사 제공됨
+        linesJson = parts[3];
+        if (parts.length >= 5 && parts[4] !== "") {
+          facesJson = parts[4];
+        } else {
+          // 대사만 있고 표정 없으면 기본 표정 (길이 맞춰서)
+          try {
+            const linesArr = JSON.parse(linesJson);
+            if (Array.isArray(linesArr)) {
+              facesJson = JSON.stringify(new Array(linesArr.length).fill("기본"));
+            }
+          } catch(e) {}
+        }
+      }
+
+      // JSON 유효성 검사 (간단히)
+      try {
+        JSON.parse(linesJson);
+      } catch(e) {
+        linesJson = '["잘못된 대사 형식입니다."]';
+      }
+      try {
+        JSON.parse(facesJson);
+      } catch(e) {
+        facesJson = '["기본"]';
+      }
+
+      if (!catMap.has(catName)) {
+        catMap.set(catName, { name: catName, keywords: [] });
+      }
+      catMap.get(catName).keywords.push({
+        kw: kw,
+        desc: desc,
+        lines: linesJson,
+        faces: facesJson
+      });
+    }
+    return Array.from(catMap.values());
+  }
+
+  // --------------------- JSON 생성 ---------------------
+  function generateJSON(categories) {
+    return JSON.stringify(categories, null, 2);
+  }
+
+  function convert() {
+    let categories = [];
+    const activeMode = document.querySelector('.mode-tab.active').getAttribute('data-mode');
+    if (activeMode === 'text') {
+      const rawText = document.getElementById('textInput').value;
+      categories = parseTextMode(rawText);
+    } else {
+      const rawText = document.getElementById('listInput').value;
+      categories = parseListMode(rawText);
+    }
+    if (categories.length === 0) {
+      alert('유효한 키워드 데이터를 찾을 수 없습니다.');
+      document.getElementById('outputCode').innerText = '// 데이터가 없습니다';
+      return;
+    }
+    const json = generateJSON(categories);
+    document.getElementById('outputCode').innerText = json;
+  }
+
+  // --------------------- 예시 채우기 ---------------------
+  function fillTextExample() {
+    document.getElementById('textInput').value = `[기초회화]
+개인적인 이야기: 약간은 사적인 내용을 주제로 이야기를 나누어 보자.
+근처의 소문: 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자.
+스킬에 대하여: 스킬을 중심으로 대화한다. 스킬의 입수방법이나 수련방법에 대해 알 수 있다.
+아르바이트에 대하여: 돈이나 음식을 얻을 많은 일거리에 대해서 대화한다. 운이 좋다면 일감을 받을 수도 있다.
+수업과 수련에 대하여: 학교의 선생과 대화해보자. 학교에서 공부를 할 때 사용한다.
+
+[중급회화]
+여행 이야기: 여행 경험을 공유합니다.
+취미 생활: 평소에 즐기는 취미에 대해 이야기합니다.`;
+    convert();
+  }
+
+  function fillListExample() {
+    const detail = document.querySelector('input[name="listDetail"]:checked').value;
+    let example = "";
+    if (detail === 'keyword') {
+      example = `기초회화 | 개인적인 이야기 | 약간은 사적인 내용을 주제로 이야기를 나누어 보자.
+기초회화 | 근처의 소문 | 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자.
+기초회화 | 스킬에 대하여 | 스킬을 중심으로 대화한다. 스킬의 입수방법이나 수련방법에 대해 알 수 있다.
+기초회화 | 아르바이트에 대하여 | 돈이나 음식을 얻을 많은 일거리에 대해서 대화한다. 운이 좋다면 일감을 받을 수도 있다.
+기초회화 | 수업과 수련에 대하여 | 학교의 선생과 대화해보자. 학교에서 공부를 할 때 사용한다.`;
+    } else if (detail === 'lines') {
+      example = `기초회화 | 개인적인 이야기 | 약간은 사적인 내용을 주제로 이야기를 나누어 보자. | ["솔직히 말하자면...", "비밀이지만...", "사실은 말이지..."]
+기초회화 | 근처의 소문 | 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자. | ["들리는 말인데...", "여기저기서 그런 소문이 있더라.", "정말인지는 모르겠지만."]
+기초회화 | 스킬에 대하여 | 스킬을 중심으로 대화한다. | ["이 스킬은 훈련이 필요해.", "실전에서 빛을 발하지.", "나도 배우는 중이야."]`;
+    } else {
+      example = `기초회화 | 개인적인 이야기 | 약간은 사적인 내용을 주제로 이야기를 나누어 보자. | ["솔직히 말하자면...", "비밀이지만...", "사실은 말이지..."] | ["곤란","웃음","기본"]
+기초회화 | 근처의 소문 | 이 주변의 소문이나 인물에 대한 내용을 주제로 이야기를 나누어 보자. | ["들리는 말인데...", "여기저기서 그런 소문이 있더라.", "정말인지는 모르겠지만."] | ["기본","웃음","정색"]
+기초회화 | 스킬에 대하여 | 스킬을 중심으로 대화한다. | ["이 스킬은 훈련이 필요해.", "실전에서 빛을 발하지.", "나도 배우는 중이야."] | ["기본","기본","기본"]`;
+    }
+    document.getElementById('listInput').value = example;
+    convert();
+  }
+
+  // --------------------- 다운로드 & 복사 ---------------------
+  function downloadJSON() {
+    const code = document.getElementById('outputCode').innerText;
+    if (!code || code === '// 결과가 여기에 표시됩니다' || code === '// 데이터가 없습니다') {
+      alert('먼저 변환 버튼을 눌러주세요.');
+      return;
+    }
+    const blob = new Blob([code], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mabinogi_keywords.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // 이벤트 등록
+  document.getElementById('convertBtn').addEventListener('click', convert);
+  document.getElementById('downloadBtn').addEventListener('click', downloadJSON);
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    const code = document.getElementById('outputCode').innerText;
+    if (code && code !== '// 결과가 여기에 표시됩니다' && code !== '// 데이터가 없습니다') {
+      navigator.clipboard.writeText(code).then(() => alert('✅ JSON 코드가 복사되었습니다.'));
+    } else {
+      alert('먼저 변환 버튼을 눌러주세요.');
+    }
+  });
+  document.getElementById('exampleTextBtn').addEventListener('click', fillTextExample);
+  document.getElementById('exampleListBtn').addEventListener('click', fillListExample);
+  
+  // 표 형식 상세 옵션 변경 시 예시 새로고침 (선택사항)
+  const radios = document.querySelectorAll('input[name="listDetail"]');
+  radios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      if (document.querySelector('.mode-tab.active').getAttribute('data-mode') === 'list') {
+        fillListExample();
+      }
+    });
+  });
+
+  // 초기 예시 실행 (텍스트 모드)
+  fillTextExample();
+</script>
+</body>
+</html>
